@@ -307,6 +307,37 @@ table.thresh td.active-row { font-weight: 700; }
 
 /* ── chart ────────────────────────────────────────────── */
 
+.equity-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.equity-stat {
+  background: var(--cash-bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.equity-stat .es-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 3px;
+}
+.equity-stat .es-dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0;
+}
+.equity-stat .es-pct {
+  font-size: 17px;
+  font-weight: 800;
+}
+.equity-stat .es-val {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
 .chart-legend {
   display: flex;
   gap: 16px;

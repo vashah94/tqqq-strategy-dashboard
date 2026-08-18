@@ -388,6 +388,20 @@ function renderEquityChart(s) {
   ];
   drawChart(document.getElementById("equityChart"), document.getElementById("equityLegend"), h.dates, lines, h.state,
     "— value of $100 invested at chart start");
+
+  const days = h.dates.length;
+  const years = days / 252; // ~252 trading days/year
+  document.getElementById("equityStats").innerHTML = lines.map((l) => {
+    const end = l.values[l.values.length - 1];
+    const totalPct = end - 100;
+    const cagr = years > 0 ? (Math.pow(end / 100, 1 / years) - 1) * 100 : 0;
+    return `
+      <div class="equity-stat">
+        <div class="es-label"><span class="es-dot" style="background:${l.color}"></span>${l.label}</div>
+        <div class="es-pct" style="color:${l.color}">${fmtPct(totalPct)}</div>
+        <div class="es-val">$100 &rarr; $${end.toFixed(2)} &middot; ${fmtPct(cagr)}/yr</div>
+      </div>`;
+  }).join("");
 }
 
 initTheme();
