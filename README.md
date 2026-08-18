@@ -43,6 +43,15 @@ API keys are needed.
    the scheduled Action keeps it current. You can also trigger it manually
    from the **Actions** tab ("Update dashboard data" → **Run workflow**).
 
+## Editing the dashboard itself
+
+`docs/index.html` loads `assets/style.css` and `assets/app.js` with a `?v=N`
+cache-busting query string. Browsers cache those files fairly aggressively
+on GitHub Pages, so if you change either file, bump `N` in `index.html` —
+otherwise returning visitors may keep running the old cached JS/CSS after
+a deploy. `docs/data/signals.json` doesn't need this — the page always
+fetches it with `cache: "no-store"`.
+
 ## Running it locally
 
 ```bash
