@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TQQQ Strategy Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📈</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div>
+      <h1>TQQQ Strategy Dashboard</h1>
+      <div class="sub" id="lastUpdated">Loading…</div>
+    </div>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">🌙</button>
+  </div>
+
+  <div class="stale" id="staleWarning">
+    ⚠️ This data looks stale — the daily update may not have run. Values below may not reflect the latest close.
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-strategy="v10">v10</button>
+    <button class="tab" data-strategy="v2">V2</button>
+  </div>
+
+  <!-- Current signal -->
+  <div class="panel">
+    <h2>Current Signal</h2>
+    <div class="state-card">
+      <div class="state-pill" id="statePill">—</div>
+      <div class="state-meta">
+        <div id="stateAsOf">—</div>
+        <div id="stateDays">—</div>
+      </div>
+    </div>
+    <div class="action-banner" id="actionBanner">
+      <div id="actionText">—</div>
+      <div class="small" id="actionSub"></div>
+    </div>
+    <div class="prices" id="prices"></div>
+  </div>
+
+  <!-- Entry/Exit + Bodyguard -->
+  <div class="grid2">
+    <div class="panel">
+      <h2>Entry / Exit</h2>
+      <div id="entryExitPanel"></div>
+    </div>
+    <div class="panel">
+      <h2>Bodyguard (Risk Overlay)</h2>
+      <div id="bodyguardPanel"></div>
+    </div>
+  </div>
+
+  <!-- Threshold table -->
+  <div class="panel" id="thresholdPanelWrap" style="display:none;">
+    <h2>All Thresholds &amp; Distances</h2>
+    <table class="thresh" id="thresholdTable"></table>
+  </div>
+
+  <!-- Chart -->
+  <div class="panel">
+    <h2>Price History &amp; Position</h2>
+    <div class="chart-legend" id="chartLegend"></div>
+    <div class="chart-wrap"><svg class="chart" id="chart" viewBox="0 0 900 320" preserveAspectRatio="none"></svg></div>
+  </div>
+
+  <!-- Recent trades -->
+  <div class="panel">
+    <h2>Recent Signal Changes</h2>
+    <table class="trades" id="tradesTable"></table>
+  </div>
+
+  <!-- Explainer -->
+  <div class="panel explain" id="explainPanel">
+    <h2>How This Strategy Works</h2>
+  </div>
+
+  <footer>
+    Generated automatically from the strategy's own state-machine code &middot; not modified for display &middot;
+    for personal reference only, not financial advice
+  </footer>
+
+</div>
+<script src="assets/app.js"></script>
+</body>
+</html>

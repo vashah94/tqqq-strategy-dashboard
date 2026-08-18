@@ -1,0 +1,40 @@
+name: Update dashboard data
+
+on:
+  schedule:
+    # 21:30 UTC = 4:30pm ET (EST) / 5:30pm ET (EDT) — after the 4pm market close either way.
+    - cron: "30 21 * * 1-5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install --quiet yfinance pandas numpy
+
+      - name: Generate dashboard data
+        run: python scripts/generate_dashboard_data.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/data/signals.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Update dashboard data ($(date -u +%Y-%m-%d))"
+            git push
+          fi

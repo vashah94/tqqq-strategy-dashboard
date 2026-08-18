@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+model_state.json
+model_log.csv
+trade_log.csv
+tqqq_v10_last_signal.txt
+tqqq_v2_last_signal.txt
