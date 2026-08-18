@@ -75,7 +75,10 @@ function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem("tqqq-theme", theme);
   document.getElementById("themeBtn").textContent = theme === "dark" ? "☀️" : "🌙";
-  if (DATA) renderChart(DATA.strategies[CURRENT]); // redraw with new computed colors
+  if (DATA) {
+    renderChart(DATA.strategies[CURRENT]);
+    renderEquityChart(DATA.strategies[CURRENT]); // redraw with new computed colors
+  }
 }
 
 /* ── load ──────────────────────────────────────────────────────────── */
@@ -126,6 +129,7 @@ function renderStrategy(id) {
   renderBodyguard(s);
   renderThresholds(s);
   renderChart(s);
+  renderEquityChart(s);
   renderTrades(s);
   document.getElementById("explainPanel").innerHTML =
     `<h2>How This Strategy Works</h2>${EXPLAIN[id]}`;
@@ -287,20 +291,26 @@ function renderTrades(s) {
   `;
 }
 
-/* ── chart ─────────────────────────────────────────────────────────── */
+/* ── chart (generic renderer, used for both price and equity charts) ─ */
 
-function renderChart(s) {
-  const h = s.history;
-  const dates = h.dates;
+function stateRuns(stateArr) {
+  const n = stateArr.length;
+  const runs = [];
+  let runStart = 0;
+  for (let i = 1; i <= n; i++) {
+    if (i === n || stateArr[i] !== stateArr[runStart]) {
+      runs.push({ start: runStart, end: i - 1, state: stateArr[runStart] });
+      runStart = i;
+    }
+  }
+  return runs;
+}
+
+function drawChart(svgEl, legendEl, dates, lines, stateArr, legendExtra) {
   const n = dates.length;
   if (!n) return;
 
-  const norm = (arr) => {
-    const base = arr[0];
-    return arr.map((v) => (v / base) * 100);
-  };
-  const spyN = norm(h.spy), qqqN = norm(h.qqq), tqqqN = norm(h.tqqq);
-  const all = spyN.concat(qqqN, tqqqN);
+  const all = lines.flatMap((l) => l.values);
   const yMinRaw = Math.min(...all), yMaxRaw = Math.max(...all);
   const pad = (yMaxRaw - yMinRaw) * 0.06 || 1;
   const y0 = yMinRaw - pad, y1 = yMaxRaw + pad;
@@ -315,15 +325,7 @@ function renderChart(s) {
     return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linejoin="round" stroke-linecap="round"/>`;
   };
 
-  // contiguous state runs for background shading
-  const runs = [];
-  let runStart = 0;
-  for (let i = 1; i <= n; i++) {
-    if (i === n || h.state[i] !== h.state[runStart]) {
-      runs.push({ start: runStart, end: i - 1, state: h.state[runStart] });
-      runStart = i;
-    }
-  }
+  const runs = stateRuns(stateArr);
   const stateColor = { 2: cssVar("--tqqq"), 1: cssVar("--qqq"), 0: cssVar("--cash") };
 
   let svg = "";
@@ -337,28 +339,55 @@ function renderChart(s) {
   const faint = cssVar("--text-faint");
   svg += `<line x1="${L}" y1="${yScale(100).toFixed(1)}" x2="${W - R}" y2="${yScale(100).toFixed(1)}" stroke="${gridColor}" stroke-width="1" stroke-dasharray="4 4"/>`;
 
-  svg += linePath(spyN, "#6366f1", 1.6);
-  svg += linePath(qqqN, "#f59e0b", 1.6);
-  svg += linePath(tqqqN, "#ec4899", 1.4);
+  lines.forEach((l) => { svg += linePath(l.values, l.color, l.width || 1.6); });
 
   svg += `<text x="${L}" y="${(T + 9).toFixed(1)}" font-size="10" fill="${faint}">${Math.round(y1)}</text>`;
   svg += `<text x="${L}" y="${(T + plotH - 2).toFixed(1)}" font-size="10" fill="${faint}">${Math.round(y0)}</text>`;
   svg += `<text x="${L}" y="${H - 6}" font-size="10" fill="${faint}">${dates[0]}</text>`;
   svg += `<text x="${W - R}" y="${H - 6}" font-size="10" fill="${faint}" text-anchor="end">${dates[n - 1]}</text>`;
 
-  const chart = document.getElementById("chart");
-  chart.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  chart.innerHTML = svg;
+  svgEl.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svgEl.innerHTML = svg;
 
-  document.getElementById("chartLegend").innerHTML = `
-    <span class="lg"><span class="dot" style="background:#6366f1"></span>SPY</span>
-    <span class="lg"><span class="dot" style="background:#f59e0b"></span>QQQ</span>
-    <span class="lg"><span class="dot" style="background:#ec4899"></span>TQQQ</span>
+  const lineSwatches = lines.map((l) => `<span class="lg"><span class="dot" style="background:${l.color}"></span>${l.label}</span>`).join("");
+  legendEl.innerHTML = `
+    ${lineSwatches}
     <span class="lg"><span class="dot" style="background:${stateColor[2]}"></span>held TQQQ</span>
     <span class="lg"><span class="dot" style="background:${stateColor[1]}"></span>held QQQ</span>
     <span class="lg"><span class="dot" style="background:${stateColor[0]}"></span>held cash</span>
-    <span style="color:var(--text-faint);">— lines indexed to 100 at chart start</span>
+    <span style="color:var(--text-faint);">${legendExtra || "— lines indexed to 100 at chart start"}</span>
   `;
+}
+
+function renderChart(s) {
+  const h = s.history;
+  const norm = (arr) => {
+    const base = arr[0];
+    return arr.map((v) => (v / base) * 100);
+  };
+  const lines = [
+    { label: "SPY", color: "#6366f1", values: norm(h.spy) },
+    { label: "QQQ", color: "#f59e0b", values: norm(h.qqq) },
+    { label: "TQQQ", color: "#ec4899", width: 1.4, values: norm(h.tqqq) },
+  ];
+  drawChart(document.getElementById("chart"), document.getElementById("chartLegend"), h.dates, lines, h.state);
+}
+
+function renderEquityChart(s) {
+  const h = s.history;
+  const norm = (arr) => {
+    const base = arr[0];
+    return arr.map((v) => (v / base) * 100);
+  };
+  const strong = cssVar("--text");
+  const lines = [
+    { label: "Strategy", color: strong, width: 2.2, values: h.equity },
+    { label: "SPY buy & hold", color: "#6366f1", values: norm(h.spy) },
+    { label: "QQQ buy & hold", color: "#f59e0b", values: norm(h.qqq) },
+    { label: "TQQQ buy & hold", color: "#ec4899", width: 1.4, values: norm(h.tqqq) },
+  ];
+  drawChart(document.getElementById("equityChart"), document.getElementById("equityLegend"), h.dates, lines, h.state,
+    "— value of $100 invested at chart start");
 }
 
 initTheme();

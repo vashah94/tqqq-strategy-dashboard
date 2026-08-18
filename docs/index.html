@@ -69,6 +69,18 @@
     <div class="chart-wrap"><svg class="chart" id="chart" viewBox="0 0 900 320" preserveAspectRatio="none"></svg></div>
   </div>
 
+  <!-- Equity curve -->
+  <div class="panel">
+    <h2>Equity Curve — Strategy vs. Buy &amp; Hold</h2>
+    <div class="chart-legend" id="equityLegend"></div>
+    <div class="chart-wrap"><svg class="chart" id="equityChart" viewBox="0 0 900 320" preserveAspectRatio="none"></svg></div>
+    <div class="bar-note" style="margin-top:8px;">
+      $100 compounding through the strategy's actual TQQQ/QQQ/cash switches over this same window, vs. $100 buy-and-hold in
+      each ticker. Illustrative only — approximated with close-to-close returns (signal at close, execute next open, per the
+      strategy's own execution rule), not a full backtest.
+    </div>
+  </div>
+
   <!-- Recent trades -->
   <div class="panel">
     <h2>Recent Signal Changes</h2>

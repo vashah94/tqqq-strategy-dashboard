@@ -31,6 +31,7 @@ from pathlib import Path
 warnings.filterwarnings("ignore")
 import numpy as np
 import pandas as pd
+import yfinance as yf
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT_PATH = ROOT / "docs" / "data" / "signals.json"
@@ -81,6 +82,50 @@ def trim(arr_like, n=HISTORY_BARS):
     return arr_like[-n:]
 
 
+def fetch_sgov(index: pd.DatetimeIndex) -> np.ndarray:
+    """
+    SGOV (cash proxy) close, aligned to the same trading calendar as `index`.
+    Used only to make the equity-curve visualization's "cash" leg realistic
+    (SGOV drifts up slowly with T-bill yield) instead of assuming flat 0%.
+    Falls back to flat 0% daily return if the fetch fails for any reason.
+    """
+    try:
+        raw = yf.download("SGOV", start=v10_mod.BUFFER_START, auto_adjust=True, progress=False)
+        s = raw["Close"]["SGOV"] if isinstance(raw.columns, pd.MultiIndex) else raw["Close"]
+        s.index = pd.to_datetime(s.index).tz_localize(None)
+        return s.reindex(index).ffill().values.astype(float)
+    except Exception as e:
+        print(f"Warning: SGOV fetch failed ({e}); equity curve will treat cash as flat.", file=sys.stderr)
+        return np.full(len(index), np.nan)
+
+
+def compute_equity(state_arr: np.ndarray, spy: np.ndarray, qqq: np.ndarray,
+                    tqqq: np.ndarray, sgov: np.ndarray) -> np.ndarray:
+    """
+    Illustrative equity curve: $100 compounding through whatever the state
+    machine held. Execution is close[i-1] -> close[i] for the position
+    implied by state[i-1] (signal at yesterday's close, held through today),
+    matching the "signal at close, execute next open" rule the runners
+    document — approximated with close-to-close returns since only close
+    prices are available. Not a full backtest; purely for the dashboard chart.
+    """
+    n = len(state_arr)
+    spy_ret = pd.Series(spy).pct_change().values
+    qqq_ret = pd.Series(qqq).pct_change().values
+    tqqq_ret = pd.Series(tqqq).pct_change().values
+    sgov_ret = pd.Series(sgov).pct_change().values
+    ret_by_state = {2: tqqq_ret, 1: qqq_ret, 0: sgov_ret}
+
+    equity = np.empty(n)
+    equity[0] = 100.0
+    for i in range(1, n):
+        r = ret_by_state[int(state_arr[i - 1])][i]
+        if np.isnan(r):
+            r = 0.0
+        equity[i] = equity[i - 1] * (1.0 + r)
+    return equity
+
+
 def load_prev(out_path: Path) -> dict:
     if not out_path.exists():
         return {}
@@ -94,7 +139,7 @@ def load_prev(out_path: Path) -> dict:
 # v10  (formulas copied from tqqq_v10_daily_runner.print_dashboard)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def build_v10(close: pd.DataFrame, prev: dict) -> dict:
+def build_v10(close: pd.DataFrame, prev: dict, sgov: np.ndarray) -> dict:
     state_arr, bg_since_arr = v10_mod.run_v10(close)
     STATE_NAME = v10_mod.STATE_NAME
     STATE_TICKER = v10_mod.STATE_TICKER
@@ -163,6 +208,10 @@ def build_v10(close: pd.DataFrame, prev: dict) -> dict:
             "spy_gap_pct": round((spy - exit_trigger) / spy * 100, 2),
         }
 
+    equity_full = compute_equity(state_arr, sp, qq, close["TQQQ"].values.astype(float), sgov)
+    equity_window = trim(equity_full)
+    equity_window = (equity_window / equity_window[0] * 100.0)
+
     dates = [str(d.date()) for d in close.index]
     history = {
         "dates": trim(dates),
@@ -174,6 +223,7 @@ def build_v10(close: pd.DataFrame, prev: dict) -> dict:
         "sma180_qqq": [None if np.isnan(x) else round(float(x), 2) for x in trim(qe180.tolist())],
         "ema230_spy": [round(float(x), 2) for x in trim(sb230.tolist())],
         "ema230_qqq": [round(float(x), 2) for x in trim(qb230.tolist())],
+        "equity": [round(float(x), 2) for x in equity_window.tolist()],
     }
 
     return {
@@ -200,7 +250,7 @@ def build_v10(close: pd.DataFrame, prev: dict) -> dict:
 # v2  (formulas copied from tqqq_v2_daily_runner.print_dashboard)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def build_v2(close: pd.DataFrame, prev: dict) -> dict:
+def build_v2(close: pd.DataFrame, prev: dict, sgov: np.ndarray) -> dict:
     state_arr, bg_since_arr, ext_arr = v2_mod.run_v2(close)
     STATE_NAME = v2_mod.STATE_NAME
     STATE_TICKER = v2_mod.STATE_TICKER
@@ -289,6 +339,10 @@ def build_v2(close: pd.DataFrame, prev: dict) -> dict:
          "distance_pct": round((spy - exit_trigger) / spy * 100, 2), "active": bool(spy < exit_trigger)},
     ]
 
+    equity_full = compute_equity(state_arr, sp, qq, close["TQQQ"].values.astype(float), sgov)
+    equity_window = trim(equity_full)
+    equity_window = (equity_window / equity_window[0] * 100.0)
+
     dates = [str(d.date()) for d in close.index]
     history = {
         "dates": trim(dates),
@@ -299,6 +353,7 @@ def build_v2(close: pd.DataFrame, prev: dict) -> dict:
         "sma160_spy": [None if np.isnan(x) else round(float(x), 2) for x in trim(sma160.tolist())],
         "sma145_spy": [None if np.isnan(x) else round(float(x), 2) for x in trim(sma145.tolist())],
         "ema210_qqq": [round(float(x), 2) for x in trim(ema210.tolist())],
+        "equity": [round(float(x), 2) for x in equity_window.tolist()],
     }
 
     return {
@@ -329,6 +384,7 @@ def build_v2(close: pd.DataFrame, prev: dict) -> dict:
 def main():
     print("Fetching latest data...")
     close = v10_mod.download()
+    sgov = fetch_sgov(close.index)
 
     prev_all = load_prev(OUT_PATH)
     prev_v10 = (prev_all.get("strategies") or {}).get("v10", {})
@@ -338,8 +394,8 @@ def main():
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "as_of_date": str(close.index[-1].date()),
         "strategies": {
-            "v10": build_v10(close, prev_v10),
-            "v2": build_v2(close, prev_v2),
+            "v10": build_v10(close, prev_v10, sgov),
+            "v2": build_v2(close, prev_v2, sgov),
         },
     }
 
