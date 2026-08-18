@@ -4,7 +4,12 @@ on:
   schedule:
     # 21:30 UTC = 4:30pm ET (EST) / 5:30pm ET (EDT) — after the 4pm market close either way.
     - cron: "30 21 * * 1-5"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      force_email:
+        description: "Send a test email even if nothing changed"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -26,6 +31,16 @@ jobs:
 
       - name: Generate dashboard data
         run: python scripts/generate_dashboard_data.py
+
+      - name: Email on signal change
+        env:
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          FORCE_EMAIL: ${{ github.event.inputs.force_email == 'true' && '1' || '' }}
+        run: python scripts/notify_email.py
 
       - name: Commit updated data
         run: |
