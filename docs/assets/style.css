@@ -98,6 +98,36 @@ body {
   flex-shrink: 0;
 }
 
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.run-btn {
+  border: 1px solid var(--panel-border);
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 8px;
+  height: 34px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.run-btn:hover { border-color: var(--accent); }
+.run-btn:disabled { opacity: 0.6; cursor: default; }
+
+.run-status {
+  font-size: 12px;
+  margin: -10px 0 14px;
+  min-height: 15px;
+}
+.run-status.ok { color: var(--good); }
+.run-status.err { color: var(--danger); }
+
 .stale {
   display: none;
   background: #fef3c7;

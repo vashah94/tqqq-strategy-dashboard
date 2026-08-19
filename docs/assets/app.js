@@ -81,6 +81,70 @@ function applyTheme(theme) {
   }
 }
 
+/* ── manual run trigger ───────────────────────────────────────────── */
+
+const GH_OWNER = "vashah94";
+const GH_REPO = "tqqq-strategy-dashboard";
+const GH_WORKFLOW = "update-signals.yml";
+const GH_TOKEN_KEY = "tqqq-gh-token";
+
+function initRunButton() {
+  document.getElementById("runBtn").addEventListener("click", triggerUpdate);
+}
+
+async function triggerUpdate() {
+  let token = localStorage.getItem(GH_TOKEN_KEY);
+  if (!token) {
+    token = prompt(
+      "Paste a GitHub token with 'Actions: write' access to this repo " +
+        "(a fine-grained PAT scoped to just this repo is recommended).\n\n" +
+        "It's stored only in this browser's localStorage and sent only to api.github.com."
+    );
+    if (!token) return;
+    token = token.trim();
+    localStorage.setItem(GH_TOKEN_KEY, token);
+  }
+
+  const btn = document.getElementById("runBtn");
+  const statusEl = document.getElementById("runStatus");
+  btn.disabled = true;
+  statusEl.className = "run-status";
+  statusEl.textContent = "Triggering update…";
+
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+        body: JSON.stringify({ ref: "master" }),
+      }
+    );
+
+    if (res.status === 204) {
+      statusEl.className = "run-status ok";
+      statusEl.textContent = "✓ Triggered — refresh in ~30-60s for new data.";
+    } else if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem(GH_TOKEN_KEY);
+      statusEl.className = "run-status err";
+      statusEl.textContent = "Token rejected (bad, expired, or missing Actions:write scope) — click again to re-enter it.";
+    } else {
+      statusEl.className = "run-status err";
+      statusEl.textContent = `Failed to trigger (HTTP ${res.status}).`;
+    }
+  } catch (err) {
+    statusEl.className = "run-status err";
+    statusEl.textContent = "Network error triggering update.";
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 /* ── load ──────────────────────────────────────────────────────────── */
 
 async function load() {
@@ -405,4 +469,5 @@ function renderEquityChart(s) {
 }
 
 initTheme();
+initRunButton();
 load();

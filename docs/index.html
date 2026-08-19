@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TQQQ Strategy Dashboard</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📈</text></svg>">
-<link rel="stylesheet" href="assets/style.css?v=3">
+<link rel="stylesheet" href="assets/style.css?v=4">
 </head>
 <body>
 <div class="wrap">
@@ -15,8 +15,12 @@
       <h1>TQQQ Strategy Dashboard</h1>
       <div class="sub" id="lastUpdated">Loading…</div>
     </div>
-    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">🌙</button>
+    <div class="top-actions">
+      <button class="run-btn" id="runBtn" title="Manually trigger the update workflow">🔄 Run Update</button>
+      <button class="theme-btn" id="themeBtn" title="Toggle light/dark">🌙</button>
+    </div>
   </div>
+  <div class="run-status" id="runStatus"></div>
 
   <div class="stale" id="staleWarning">
     ⚠️ This data looks stale — the daily update may not have run. Values below may not reflect the latest close.
@@ -99,6 +103,6 @@
   </footer>
 
 </div>
-<script src="assets/app.js?v=3"></script>
+<script src="assets/app.js?v=4"></script>
 </body>
 </html>
