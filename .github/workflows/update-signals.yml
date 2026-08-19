@@ -2,6 +2,8 @@ name: Update dashboard data
 
 on:
   schedule:
+    # 19:30 UTC = 2:30pm ET (EST) / 3:30pm ET (EDT).
+    - cron: "30 19 * * 1-5"
     # 21:30 UTC = 4:30pm ET (EST) / 5:30pm ET (EDT) — after the 4pm market close either way.
     - cron: "30 21 * * 1-5"
   workflow_dispatch:
