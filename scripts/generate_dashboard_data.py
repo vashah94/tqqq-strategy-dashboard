@@ -384,6 +384,11 @@ def build_v2(close: pd.DataFrame, prev: dict, sgov: np.ndarray) -> dict:
 def main():
     print("Fetching latest data...")
     close = v10_mod.download()
+    if close[["SPY", "QQQ", "TQQQ"]].iloc[-1].isna().any():
+        print("Warning: latest row has NaN close(s), retrying fetch once...", file=sys.stderr)
+        close = v10_mod.download()
+    if close[["SPY", "QQQ", "TQQQ"]].iloc[-1].isna().any():
+        sys.exit("Latest close still has NaN after retry; aborting so stale-but-valid data is kept.")
     sgov = fetch_sgov(close.index)
 
     prev_all = load_prev(OUT_PATH)
@@ -400,7 +405,7 @@ def main():
     }
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUT_PATH.write_text(json.dumps(payload, indent=2))
+    OUT_PATH.write_text(json.dumps(payload, indent=2, allow_nan=False))
     print(f"Wrote {OUT_PATH}  ({OUT_PATH.stat().st_size:,} bytes)")
 
 
