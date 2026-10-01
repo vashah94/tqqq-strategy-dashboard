@@ -3,9 +3,10 @@
 check_staleness.py
 
 Backstop for the daily update. If docs/data/signals.json's as_of_date
-isn't today (UTC date, which matches the US market's trading-day date
-at the time this runs), emails an alert so a missed run doesn't go
-unnoticed. Meant to run later in the day than the update workflow's own
+is older than the most recent US trading day whose close has passed
+(judged in America/New_York time, so a GitHub-delayed run that lands
+after midnight UTC doesn't demand data for a session that hasn't
+happened yet), emails an alert so a missed run doesn't go unnoticed. Meant to run later in the day than the update workflow's own
 schedules, as an independent safety net against GitHub's schedule
 trigger silently not firing.
 
@@ -27,12 +28,26 @@ import json
 import os
 import smtplib
 import sys
-from datetime import datetime, timezone
+from datetime import date, datetime, time, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 DATA_PATH = Path(__file__).resolve().parent.parent / "docs" / "data" / "signals.json"
+ET = ZoneInfo("America/New_York")
+# Give the 4pm close a little time to show up in Yahoo's data.
+CLOSE_SETTLED = time(16, 30)
+
+
+def expected_session(now_et: datetime) -> date:
+    """Most recent weekday whose close has passed (holidays not considered)."""
+    d = now_et.date()
+    if now_et.time() < CLOSE_SETTLED:
+        d -= timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= timedelta(days=1)
+    return d
 
 
 def send(subject: str, html: str, cfg: dict) -> None:
@@ -54,14 +69,14 @@ def main() -> int:
         print("Email not configured — skipping staleness check.")
         return 0
 
-    today = datetime.now(timezone.utc).date().isoformat()
+    today = expected_session(datetime.now(ET)).isoformat()
 
     if not DATA_PATH.exists():
         as_of = None
     else:
         as_of = json.loads(DATA_PATH.read_text()).get("as_of_date")
 
-    if as_of == today:
+    if as_of and as_of >= today:
         print(f"Data is fresh (as_of_date={as_of}). No alert needed.")
         return 0
 

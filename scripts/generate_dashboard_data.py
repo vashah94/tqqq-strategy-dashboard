@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import sys
 import warnings
 from datetime import datetime, timezone
@@ -389,15 +390,30 @@ def main():
         close = v10_mod.download()
     if close[["SPY", "QQQ", "TQQQ"]].iloc[-1].isna().any():
         sys.exit("Latest close still has NaN after retry; aborting so stale-but-valid data is kept.")
+
+    # Guard against regressions: Yahoo/yfinance sometimes omits the most
+    # recent session when queried after 00:00 UTC (GitHub often delays the
+    # scheduled runs that late), which would roll the site back a day.
+    prev_all = load_prev(OUT_PATH)
+    new_as_of = str(close.index[-1].date())
+    prev_as_of = prev_all.get("as_of_date")
+    if prev_as_of and new_as_of < prev_as_of:
+        print(f"Fetched data ends {new_as_of}, older than existing {prev_as_of}; "
+              "keeping existing data.", file=sys.stderr)
+        gh_out = os.getenv("GITHUB_OUTPUT")
+        if gh_out:
+            with open(gh_out, "a") as f:
+                f.write("skipped=true\n")
+        return 0
+
     sgov = fetch_sgov(close.index)
 
-    prev_all = load_prev(OUT_PATH)
     prev_v10 = (prev_all.get("strategies") or {}).get("v10", {})
     prev_v2 = (prev_all.get("strategies") or {}).get("v2", {})
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "as_of_date": str(close.index[-1].date()),
+        "as_of_date": new_as_of,
         "strategies": {
             "v10": build_v10(close, prev_v10, sgov),
             "v2": build_v2(close, prev_v2, sgov),

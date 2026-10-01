@@ -32,9 +32,11 @@ jobs:
         run: pip install --quiet yfinance pandas numpy
 
       - name: Generate dashboard data
+        id: generate
         run: python scripts/generate_dashboard_data.py
 
       - name: Email on signal change
+        if: steps.generate.outputs.skipped != 'true'
         env:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
