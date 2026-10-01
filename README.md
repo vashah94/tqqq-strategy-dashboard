@@ -36,7 +36,7 @@ API keys are needed.
 
 1. Push this repo to GitHub.
 2. In **Settings → Pages**, set Source to "Deploy from a branch",
-   branch `main`, folder `/docs`.
+   branch `master`, folder `/docs`.
 3. Your dashboard will be live at `https://<user>.github.io/<repo>/`.
 4. The first page load needs `docs/data/signals.json` to exist — it's
    already committed with real data from the last local run. After that,
