@@ -34,6 +34,16 @@ jobs:
       - name: Generate dashboard data
         run: python scripts/generate_dashboard_data.py
 
+      - name: Email on signal change
+        # Sends only when a strategy's state actually changes; silent otherwise.
+        env:
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+        run: python scripts/notify_email.py
+
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
