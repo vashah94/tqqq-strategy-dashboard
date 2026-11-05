@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-04T20:09:44+00:00",
+  "generated_at": "2026-11-05T00:27:15+00:00",
   "as_of_date": "2026-11-04",
   "strategies": {
     "v10": {
@@ -14,15 +14,15 @@
       "changed": false,
       "days_in_state": 10,
       "prices": {
-        "spy": 767.37,
-        "qqq": 692.39,
-        "tqqq": 62.365
+        "spy": 766.81,
+        "qqq": 691.95,
+        "tqqq": 62.24
       },
       "bodyguard": {
         "active": false,
         "since": null,
-        "spy_ext_pct": 6.06,
-        "qqq_ext_pct": 2.48,
+        "spy_ext_pct": 5.99,
+        "qqq_ext_pct": 2.41,
         "warn_pct": 10.0,
         "danger_pct": 30.0,
         "return_pct": 5.0
@@ -30,13 +30,13 @@
       "entry": {
         "description": "SPY & QQQ both > SMA180 \u00d7 1.03",
         "ready": false,
-        "spy_gap_pct": -1.76,
-        "qqq_gap_pct": 2.17
+        "spy_gap_pct": -1.68,
+        "qqq_gap_pct": 2.23
       },
       "exit": {
         "description": "SPY < EMA50 \u00d7 0.94",
-        "trigger_price": 718.64,
-        "spy_gap_pct": 6.35
+        "trigger_price": 718.62,
+        "spy_gap_pct": 6.28
       },
       "transitions": [
         {
@@ -699,7 +699,7 @@
           589.19,
           593.2,
           593.65,
-          591.74,
+          591.73,
           597.98,
           597.95,
           599.71,
@@ -1133,7 +1133,7 @@
           755.72,
           752.1,
           754.35,
-          767.37
+          766.81
         ],
         "qqq": [
           500.51,
@@ -1157,7 +1157,7 @@
           511.69,
           518.02,
           516.58,
-          521.2,
+          521.21,
           517.15,
           515.38,
           524.61,
@@ -1635,7 +1635,7 @@
           690.49,
           681.09,
           685.28,
-          692.39
+          691.95
         ],
         "tqqq": [
           38.75,
@@ -2137,7 +2137,7 @@
           62.01,
           59.46,
           60.55,
-          62.37
+          62.24
         ],
         "state": [
           1,
@@ -4145,7 +4145,7 @@
           722.59,
           722.85,
           723.12,
-          723.51
+          723.5
         ],
         "ema230_qqq": [
           444.89,
@@ -4647,7 +4647,7 @@
           675.39,
           675.44,
           675.52,
-          675.67
+          675.66
         ],
         "equity": [
           100.0,
@@ -5149,7 +5149,7 @@
           165.75,
           158.94,
           161.85,
-          166.7
+          166.37
         ]
       }
     },
@@ -5165,15 +5165,15 @@
       "changed": false,
       "days_in_state": 72,
       "prices": {
-        "spy": 767.37,
-        "qqq": 692.39,
-        "tqqq": 62.365
+        "spy": 766.81,
+        "qqq": 691.95,
+        "tqqq": 62.24
       },
       "bodyguard": {
         "active": false,
         "since": null,
         "days_active": 0,
-        "ext_pct": 1.64,
+        "ext_pct": 1.58,
         "zone": "CLEAR",
         "warn_pct": 15.0,
         "danger_pct": 35.0,
@@ -5183,42 +5183,42 @@
         "description": "SPY > SMA160 \u00d7 1.04",
         "ready": false,
         "trigger_price": 768.79,
-        "spy_gap_pct": 0.19
+        "spy_gap_pct": 0.26
       },
       "exit": {
         "description": "SPY < SMA145 \u00d7 0.98",
         "trigger_price": 733.35,
-        "spy_gap_pct": 4.43
+        "spy_gap_pct": 4.36
       },
       "thresholds": [
         {
           "label": "BG clear \u2014 QQQ \u2264 EMA210+6%",
           "level": 722.06,
-          "distance_pct": 4.29,
+          "distance_pct": 4.35,
           "active": false
         },
         {
           "label": "BG warn \u2014 QQQ > EMA210+15%",
           "level": 783.37,
-          "distance_pct": 13.14,
+          "distance_pct": 13.21,
           "active": false
         },
         {
           "label": "BG danger \u2014 QQQ > EMA210+35%",
-          "level": 919.61,
-          "distance_pct": 32.82,
+          "level": 919.6,
+          "distance_pct": 32.9,
           "active": false
         },
         {
           "label": "Entry \u2014 SPY > SMA160+4%",
           "level": 768.79,
-          "distance_pct": 0.19,
+          "distance_pct": 0.26,
           "active": false
         },
         {
           "label": "Exit \u2014 SPY < SMA145\u22122%",
           "level": 733.35,
-          "distance_pct": 4.43,
+          "distance_pct": 4.36,
           "active": false
         }
       ],
@@ -5883,7 +5883,7 @@
           589.19,
           593.2,
           593.65,
-          591.74,
+          591.73,
           597.98,
           597.95,
           599.71,
@@ -6317,7 +6317,7 @@
           755.72,
           752.1,
           754.35,
-          767.37
+          766.81
         ],
         "qqq": [
           500.51,
@@ -6341,7 +6341,7 @@
           511.69,
           518.02,
           516.58,
-          521.2,
+          521.21,
           517.15,
           515.38,
           524.61,
@@ -6819,7 +6819,7 @@
           690.49,
           681.09,
           685.28,
-          692.39
+          691.95
         ],
         "tqqq": [
           38.75,
@@ -7321,7 +7321,7 @@
           62.01,
           59.46,
           60.55,
-          62.37
+          62.24
         ],
         "state": [
           2,
@@ -9792,14 +9792,14 @@
           241.13,
           240.43,
           238.4,
-          230.6,
+          230.61,
           236.5,
           230.8,
           226.24,
           226.34,
           237.84,
           242.03,
-          262.92,
+          262.93,
           269.32,
           262.6,
           262.33,
@@ -9831,7 +9831,7 @@
           207.01,
           198.5,
           202.14,
-          208.2
+          207.78
         ]
       }
     }
